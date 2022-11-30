@@ -1,0 +1,172 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Football</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    const config = {
+        type: Phaser.AUTO,
+        width: 950,
+        height: 1000,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { x: 0, y: 0 },
+                debug: true
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+    let ball;
+    let blue;
+    let blueGoal;
+    let cursors;
+    let goalText;
+    let keyA;
+    let keyS;
+    let keyD;
+    let keyF;
+    let red;
+    let redGoal;
+    let scoreText;
+    let redGoals = 0;
+    let blueGoals = 0;
+    let timeOfLastGoal = new Date().getTime();
+
+    function preload ()
+    {
+        this.load.image('pitch', 'assets/pitch.png');
+        this.load.image('ball', 'assets/ball.png');
+        this.load.image('blue', 'assets/blue.png');
+        this.load.image('red', 'assets/red.png');
+    }
+
+    function create ()
+    {
+        this.add.image(472, 500, 'pitch');
+        this.physics.world.setBounds(120, 0, 705, 1000, 32, true, true, true, true);
+        ball = this.physics.add.sprite(472, 500, 'ball');
+        let xSpeed = Math.random() < 0.5 ? -150 : 150;
+        ball.body.setVelocityX(Phaser.Math.FloatBetween(0, xSpeed));
+        ball.body.setVelocityY(700);
+        ball.body.collideWorldBounds = true;
+        ball.body.bounce.setTo(0.25, 0.97);
+        ball.body.setCircle(20, 5, 5);
+        ball.body.mass = 0.1;
+        blue = this.physics.add.sprite(472, 800, 'blue');
+        blue.setCollideWorldBounds(true);
+        this.physics.add.collider(blue, ball);
+        blue.body.setSize(50, 30);
+        blue.body.mass = 1;
+        blue.body.bounce.setTo(0);
+        blue.body.immovable = true;
+        red = this.physics.add.sprite(472, 200, 'red');
+        red.setCollideWorldBounds(true);
+        this.physics.add.collider(red, ball);
+        red.body.setSize(50, 30);
+        red.body.mass = 1;
+        red.body.bounce.setTo(0);
+        red.body.immovable = true;
+        cursors = this.input.keyboard.createCursorKeys();
+        keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+        keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+        keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        blueGoal = this.add.zone(408, 0).setSize(125, 15);
+        redGoal = this.add.zone(408, 985).setSize(125, 15);
+        this.physics.world.enable(blueGoal);
+        this.physics.world.enable(redGoal);
+        this.physics.add.overlap(ball, blueGoal, blueScore, null, this);
+        this.physics.add.overlap(ball, redGoal, redScore, null, this);
+        scoreText = this.add.text(76, 16, 'Red: 0 | Blue: 0', { fontSize: '30px', fill: '#000' });
+    }
+
+    function update ()
+    {
+        let ballSpeed = ball.body.velocity.y;
+        let speed = 550;
+        let drag = 2000;
+
+        if (cursors.left.isDown)
+        {
+            blue.setVelocityX(-speed);
+            blue.setAccelerationX(0);
+            blue.body.setDrag(drag);
+        }
+        if (cursors.right.isDown)
+        {
+            blue.setVelocityX(speed);
+            blue.setAccelerationX(0);
+            blue.body.setDrag(drag);
+        }
+        if(keyA.isDown) 
+        {
+            red.setVelocityX(-speed);
+            red.setAccelerationX(0);
+            red.body.setDrag(drag);
+        }
+        if(keyS.isDown) 
+        {
+            red.setVelocityX(speed);
+            red.setAccelerationX(0);
+            red.body.setDrag(drag);
+        }
+        if (ballSpeed < 500 && ballSpeed > -500)
+        {
+            let sign = Math.sign(ballSpeed);
+            if (sign == 1) { ball.body.setVelocityY(700); }
+            if (sign == -1){ ball.body.setVelocityY(-700); }
+            
+        }
+    }
+
+    function redScore()
+    {
+        let currentTime = new Date().getTime();
+        console.log(((currentTime - timeOfLastGoal) / 1000))
+        if (((currentTime - timeOfLastGoal) / 1000) < 1.5)
+        {
+            return;
+        }
+        else
+        {
+            redGoals += 1;
+            scoreText.setText(`Red: ${redGoals} | Blue: ${blueGoals}`);
+            timeOfLastGoal = currentTime;
+        }
+    }
+
+    function blueScore()
+    {
+        let currentTime = new Date().getTime();
+        if (((currentTime - timeOfLastGoal) / 1000) < 1.5)
+        {
+            return;
+        }
+        else {
+            blueGoals += 1;
+            scoreText.setText(`Red: ${redGoals} | Blue: ${blueGoals}`);
+            timeOfLastGoal = currentTime;
+        }
+    }
+
+</script>
+
+</body>
+</html>
